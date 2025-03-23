@@ -6,9 +6,13 @@ from PySide6.QtWidgets import QApplication, QMainWindow, QTabWidget, QMenuBar, Q
 from tabs.universe_editor_tab import UniverseEditorTab
 from tabs.wheel_tab import WheelTab
 from tabs.download_tab import DownloadTab
+from PySide6.QtCore import Signal
+import keyboard
 
 
 class MainWindow(QMainWindow):
+    hotkeySignal = Signal()
+
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Heroes V Extended")
@@ -43,18 +47,49 @@ class MainWindow(QMainWindow):
         aboutAct = menuHelp.addAction("Про програму")
         aboutAct.triggered.connect(self.onAbout)
 
+        self.tabs.currentChanged.connect(self.onTabChanged)
         self.applyNeonStyle()
         self.resize(1000, 700)
+
+        self.hotkeySignal.connect(self._show_wheel)
+
+        import keyboard
+        keyboard.add_hotkey('Tab', self.hotkeySignal.emit)
+
+    def _show_wheel(self):
+        from ctypes import windll
+
+        hwnd = int(self.winId())
+        # Якщо зараз мінімізовано → відновлюємо і показуємо колесо
+        if self.isMinimized() or not self.isVisible():      
+            self.tabs.blockSignals(True)            
+            self.tabs.setCurrentIndex(1 )
+            self.tabs.blockSignals(False)
+
+            windll.user32.ShowWindow(hwnd, 9)  # SW_RESTORE
+            windll.user32.SetForegroundWindow(hwnd)
+            self.showMaximized()
+        else:
+            # Інакше — мінімізуємо
+            windll.user32.ShowWindow(hwnd, 6)  # SW_MINIMIZE
+
+    def onTabChanged(self, index):
+        # Якщо вкладка «Колесо вмінь» (індекс 1), розгортаємо на весь екран
+        if index == 1:
+            self.showMaximized()
+        else:
+            self.showNormal()
+            self.resize(1000, 700)
 
     def onAbout(self):
         """Просте вікно з інформацією."""
         from PySide6.QtWidgets import QMessageBox
         QMessageBox.information(self, "Про програму",
-            "Heroes V Extended\n\n" 
-            " - Universe Editor\n"
-            " - Колесо вмінь\n"
-            " - Завантаження ZIP та ін.\n\n"
-            "Автор: ChatGPT Extended")
+                                "Heroes V Extended\n\n"
+                                " - Universe Editor\n"
+                                " - Колесо вмінь\n"
+                                " - Завантаження ZIP та ін.\n\n"
+                                "Автор: ChatGPT Extended")
 
     def applyNeonStyle(self):
         self.setStyleSheet("""
