@@ -54,7 +54,7 @@ class MainWindow(QMainWindow):
         self.hotkeySignal.connect(self._show_wheel)
 
         import keyboard
-        keyboard.add_hotkey('Tab', self.hotkeySignal.emit)
+        keyboard.add_hotkey('ctrl+alt', self.hotkeySignal.emit)
 
     def _show_wheel(self):
         from ctypes import windll

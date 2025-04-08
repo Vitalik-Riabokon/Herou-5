@@ -21,9 +21,13 @@ INSTALL_MAP = {
 }
 
 DOWNLOAD_SOURCES = {
+    "Universe_mod": {"type": "git", "repo": "Vitalik-Riabokon/Herou-5", "file": "Universe_mod 1.3.zip"},
+    "H5AI_31":      {"type": "gdrive", "id": "1F2s-Ebm80JBj7OOsce3E-cqLJGyzpu2d"},
     "Tribes of the East": {"type": "gdrive", "id": "1UMXa_c6k5AGReDUNXDh3p5toxHsWnizG"},
-    "CheatEngine":        {"type": "gdrive", "id": "1b-stAqvS8NoqEf4wCD3EMKaYiJzLGfzm"},
+    "CheatEngine":  {"type": "gdrive", "id": "1b-stAqvS8NoqEf4wCD3EMKaYiJzLGfzm"},
+    "Maps":         {"type": "gdrive", "id": "1SaXQI64JkTp_6_gqqc0Lk95ZnJODuy0h"}
 }
+
 
 def github_download(repo: str, filepath: str, dest: str):
     token = os.getenv("GITHUB_TOKEN")
