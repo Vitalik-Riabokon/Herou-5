@@ -7,7 +7,6 @@ from tabs.universe_editor_tab import UniverseEditorTab
 from tabs.wheel_tab import WheelTab
 from tabs.download_tab import DownloadTab
 from PySide6.QtCore import Signal
-import keyboard
 
 
 class MainWindow(QMainWindow):
