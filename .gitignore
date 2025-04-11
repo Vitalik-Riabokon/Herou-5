@@ -1,2 +1,6 @@
 .env
 .gitattributes
+download_tab_config.ini
+dt.ini
+download_tab_settings.ini
+.venv
