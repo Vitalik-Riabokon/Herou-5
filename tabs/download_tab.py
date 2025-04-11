@@ -153,10 +153,13 @@ class GitDownloadWorker(QThread):
             self.finishedSignal.emit(f"❌ GitHub download failed: {ex}")
 
 
+import subprocess
+import re
+
 class GDriveDownloadWorker(QThread):
-    """Воркeр для скачування великого файлу з Google Drive (обробляє confirm)."""
+    """Воркeр для скачування Google Drive через gdown з відображенням прогресу."""
     progressChanged = Signal(int)
-    statusMessage = Signal(str)
+    statusMessage  = Signal(str)
     finishedSignal = Signal(str)
 
     def __init__(self, file_id: str, out_path: str):
@@ -165,16 +168,44 @@ class GDriveDownloadWorker(QThread):
         self.out_path = out_path
 
     def run(self):
+        url = f"https://drive.google.com/uc?id={self.file_id}"
+        self.statusMessage.emit("⚡ Запуск gdown…")
+        # Формуємо команду
+        cmd = ["gdown", url, "-O", self.out_path]
         try:
-            url = f"https://drive.google.com/uc?id={self.file_id}"
-            self.statusMessage.emit("⚡ Завантаження через gdown…")
-            # Викликаємо без progress_bar, gdown сам покаже прогрес у консолі
-            gdown.download(url, output=self.out_path, quiet=True, fuzzy=True)
-            # Після завантаження ставимо 100%
+            proc = subprocess.Popen(
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                text=True,
+                bufsize=1
+            )
+        except FileNotFoundError:
+            return self.finishedSignal.emit("❌ Не знайдено gdown. Встановіть його через pip install gdown")
+
+        pattern = re.compile(r"\s*(\d+)%\s+([\d\.]+[KMG]?B/s)")
+
+        # Читаємо stdout рядок за рядком
+        for line in proc.stdout:
+            line = line.strip()
+            # Емімо будь‑які статусні повідомлення
+            self.statusMessage.emit(line)
+            # Шукаємо прогрес
+            m = pattern.search(line)
+            if m:
+                pct = int(m.group(1))
+                speed = m.group(2)
+                self.progressChanged.emit(pct)
+                # Додатково показуємо швидкість
+                self.statusMessage.emit(f"🚀 {speed}")
+        proc.wait()
+
+        if proc.returncode == 0:
             self.progressChanged.emit(100)
             self.finishedSignal.emit(f"✅ Завантажено {self.out_path}")
-        except Exception as e:
-            self.finishedSignal.emit(f"❌ gdown failed: {e}")
+        else:
+            self.finishedSignal.emit(f"❌ gdown завершився з кодом {proc.returncode}")
+
 
 
 # ------------------------------------------------------
